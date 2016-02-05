@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JavaScript Closures</title
+</head>
+
+<body>
+    <h1>JavaScript Closures Demo</h1>
+
+    <div id="container">
+        <div id="demo"></div>
+        <br>
+        
+    </div>
+
+    <script>
+		function whatWasTheLocal(){
+			var CAPTURED = "Oh hail";
+			
+			return function(){
+				return "The local was: " + CAPTURED;
+			}
+		}
+		var reportLocal = whatWasTheLocal();
+		
+		console.log(reportLocal());
+		
+		function createScaleFunction(FACTOR){
+			return function(v){
+				return v.map(function(n){
+					return (n*FACTOR);
+				});
+			};
+		}
+		
+		var scale10 = createScaleFunction(10);
+		var scale100 = createScaleFunction(100);
+		
+		console.log(scale10([1,2,3]));
+		console.log(scale100([1,2,3]));
+		
+		function average(arr){
+			var sum = arr.reduce(function(a,b,index,arr){
+				return a+b;
+			});
+			return sum/arr.length;
+		}
+		
+		function averageDamp(FUN){
+			return function(n){
+				return average([n, FUN(n)]);
+			}
+		}
+		
+		var averageSq = averageDamp(function(n){return n*n});
+		
+		console.log(averageSq(10));
+		
+		
+		var shadowed = 0;
+		function argShadow(shadowed){
+			return ["Value is",shadowed].join(' ');
+		}
+		
+		console.log(argShadow(108));
+		console.log(argShadow());
+		
+		
+		// Recipe for confusion
+		// Minimize the exposure of captured variables
+		
+		// Closure
+		function showObject(OBJ){
+			return function(){
+				return OBJ;
+			}
+		}
+		
+		var o = {a:42};
+		// Capture global variable
+		var showO = showObject(o);
+		
+		console.log(showO());
+		
+		// Change global variable
+		o.newField = 108;
+		console.log(showO());
+		
+		// Closure pattern: Capture variables as private data
+		var pingpong = (function(){
+			var PRIVATE = 0;
+			return {
+				inc: function(n){return PRIVATE += n;},
+				dec: function(n){return PRIVATE -= n;}
+			};
+		})();
+		
+		console.log(pingpong.inc(10));
+		console.log(pingpong.dec(7));
+		
+		
+		// Closures as an Abstraction
+		// Closures often allow you to create functions based solely on some configuration captured at creation time.
+		function plucker(FIELD){
+			return function(obj){
+				return (obj&&obj[FIELD]);
+			}
+		}
+		
+		var best = {title: "Infinite Jest", autho: "DFW"};
+		
+		var getTitle = plucker('title');
+		
+		console.log(getTitle(best));
+		
+		var books = [{title: 'Chthon'},{stars:5},{title:'Botchan'}];
+		var third = plucker(2);
+		
+		console.log(third(books));
+		
+		
+    </script>
+</body>
+</html>

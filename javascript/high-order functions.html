@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+    <title>JavaScript High-order Functions</title
+</head>
+
+<body>
+    <h1>JavaScript High-Order functions Demo</h1>
+
+    <div id="container">
+        <div id="demo"></div>
+        <br>
+        
+    </div>
+
+    <script>
+
+		function max(array){
+			return Math.max.apply(null, array);
+		}
+		
+		console.log(max([1,5,3]));
+		
+		function finder(valueFun, bestFun, coll){
+			return coll.reduce(function(best, current){
+				var bestValue = valueFun(best);
+				var currentValue = valueFun(current);
+				
+				// The === operator does not do conversions before compare for equality
+				
+				return (bestValue === bestFun(bestValue, currentValue)) ? best : current;
+			});
+		}
+		
+		function plucker(FIELD){
+			return function(obj){
+				return (obj&&obj[FIELD]);
+			}
+		}
+		
+		var people = [{name: "Fred", age:65},{name: "Lucy", age:36}, {name:"Luciano", age:29}];
+		
+		console.log(finder(plucker('name'), function(x,y){return (x.charAt(0) === "L") ? x : y }, people));
+		
+		function best(fun, col){
+			return col.reduce(function(x,y){
+				return fun(x,y) ? x : y;
+			});
+		}
+		
+		console.log(best(function(x,y){return x>y}, [1,2,3,4,5]));
+		
+		function repeat(times, VALUE){
+			return _.map(_.range(times), function(){return VALUE;})
+		}
+		
+		console.log(repeat(4,"Major"));
+		
+		
+		
+		
+		function repeatedly(times, fun){
+			return _.map(_.range(times), fun);
+		}
+		
+		
+		
+		console.log(repeatedly(4,function(){
+			return Math.floor((Math.random()*10)+1);
+		}));
+		
+		
+		function iterateUntil(fun, check, init){
+			var ret = [];
+			var result = fun(init);
+			
+			while(check(result)){
+				ret.push(result);
+				result = fun(result);
+			}
+			
+			return ret;
+		};
+		
+		
+		
+		
+		console.log(iterateUntil(function(n){return n+n}, function(n){return n <= 1024}, 1));
+			
+		
+		
+		function always(VALUE){
+			return function(){
+				return VALUE;
+			};
+		};
+		
+		
+		var f = always(function(){});
+		var g = always(function(){});
+		
+		console.log(f() === f());
+		console.log(f() === g());
+		
+		
+		
+		
+		
+		
+		
+		function invoker(NAME, METHOD){
+			return function(target){
+				
+				var targetMethod = target[NAME];
+				var args = _.rest(arguments);
+				
+				return doWhen((METHOD === targetMethod), function(){
+					return targetMethod.apply(target,args);
+				});
+			};
+		};
+		
+		var rev = invoker('reverse', Array.prototype.reverse);
+	
+		
+		
+		function uniqueString1(len){
+			return Math.random().toString(36).substr(2,len);
+		};
+		
+		console.log(uniqueString1(10));
+		
+		function uniqueString2(prefix){
+			return [prefix, new Date().getTime()].join('');
+		}
+		
+		console.log(uniqueString2("argento"));
+		
+		function log(e){
+			return console.log(e);
+		}
+		
+		function makeUniqueStringFunction(start){
+			var COUNTER = start;
+			
+			return function(prefix){
+				return [prefix, COUNTER++].join('');
+			}
+		};
+		
+		var uniqueString = makeUniqueStringFunction(0);
+		
+		
+		log(uniqueString("dari"));
+		log(uniqueString("dari"));
+		log(uniqueString("dari"));
+		
+		// High order function behavior with object
+		var generator = {
+			counter : 0,
+			uniqueString: function(prefix){
+					return [prefix, this.counter++].join('');
+			}
+		};
+		
+		log(generator.uniqueString("bohr"));
+		log(generator.uniqueString("bohr"));
+		
+		// Bug
+		generator.counter = "gotcha";
+		log(generator.uniqueString("bohr"));
+		
+		
+		var omgenerator = (function(init){
+			var COUNTER = init;
+			
+			return {
+				uniqueString: function(prefix){
+					return [prefix, COUNTER++].join('');
+				}
+			};
+		})(0);
+		
+		log(omgenerator.uniqueString("lichking-"));
+		omgenerator.COUNTER = "gotcha";
+		log(omgenerator.uniqueString("lichking-"));
+		
+		
+		
+		var nums = [1,2,3,null,5];
+		
+		log(_.reduce(nums, function(total, n){return total * n}));
+		
+		
+		function existy(x){return x != null };
+		
+		
+		function fnull(fun){
+			var defaults = _.rest(arguments);
+			
+			return function(){
+				var args = _.map(arguments, function(e,i){
+					return existy(e) ? e : defaults[i];
+				});
+				
+				return fun.apply(null, args);
+			};
+		};
+		
+		var safeMult = fnull(function(total, n){return total*n}, 1, 1);
+		
+		log(_.reduce(nums, safeMult));
+		
+		
+		function defaults(d){
+			return function(o,k){
+				var val = fnull(_.identity, d[k]);
+				return o && val(o[k]);
+			};
+		}
+		
+		function doSomething(config){
+			var lookup = defaults({critical: 108});
+			
+			return lookup(config, 'critical');
+		}
+		
+		log(doSomething({critical:9}));
+		
+		log(doSomething({}));
+		
+		
+		
+		
+		
+		function checker(){
+			var validators = _.toArray(arguments);
+			return function(obj){
+				return _.reduce(validators, function(errs,check){
+					log('check: ' + check);
+					log('errs: ' + errs);
+					if(check(obj))
+						return errs
+					else
+						return _.chain(errs).push(check.message).value();
+				}, []);
+			};
+		}
+		
+		
+		var alwaysPasses = checker(always(true), always(true));
+		log(alwaysPasses());
+		
+		var fails = always(false);
+		fails.message = "a failure in life";
+		var alwaysFails = checker(fails);
+		
+		log(alwaysFails({}));
+		
+		function validator(message, fun){
+			var f = function(){
+				return fun.apply(fun, arguments);
+			};
+			
+			f['message'] = message;
+			return f;
+		}
+		
+		var gonnaFail = checker(validator(("ZOMG!"), always(false)));
+		log(gonnaFail(100));
+		
+		
+		function aMap(obj) {
+			return _.isObject(obj);
+		}
+		
+		var checkCommand = checker(validator("must be a map", aMap));
+		
+		log(checkCommand({}));
+		//=> true
+		log(checkCommand(42));
+		//=> ["must be a map"]
+		
+		function hasKeys(){
+			var KEYS = _.toArray(arguments);
+			
+			var fun = function(obj){
+				return _.every(KEYS, function(k){
+					return _.has(obj, k);
+				});
+			};
+			
+			fun.message = (["Must have values for keys:"], KEYS).join(" ");
+			return fun;
+		}
+		
+		
+		var checkCommand =  checker(validator("must be a map", aMap), hasKeys('msg', 'type'));
+		log(checkCommand({msg: "blah", type: "display"}));
+		log(checkCommand(32));
+		log(checkCommand({}));
+		
+		
+		
+    </script>
+</body>
+</html>

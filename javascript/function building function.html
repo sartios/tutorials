@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+    <title>JavaScript High-order Functions</title
+</head>
+
+<body>
+    <h1>JavaScript High-Order functions Demo</h1>
+
+    <div id="container">
+        <div id="demo"></div>
+        <br>
+        
+    </div>
+
+    <script>
+	
+		function truthy(x){return (x!==false) && existy(x)};
+		
+		function doWhen(cond, action){
+			if(truthy(cond))
+				return action();
+			else
+				return undefined;
+		}
+	
+		function cat(){
+			var head = _.first(arguments);
+			if(existy(head))
+				return head.concat.apply(head, _.rest(arguments));
+			else
+				return [];
+		}
+		
+		log(cat([1,2,3], [4,5], [6,7,8]));
+		
+		function construct(head, tail){
+			return cat([head], _.toArray(tail));
+		}
+		
+		
+
+		function max(array){
+			return Math.max.apply(null, array);
+		}
+		
+		function finder(valueFun, bestFun, coll){
+			return coll.reduce(function(best, current){
+				var bestValue = valueFun(best);
+				var currentValue = valueFun(current);
+				
+				// The === operator does not do conversions before compare for equality
+				
+				return (bestValue === bestFun(bestValue, currentValue)) ? best : current;
+			});
+		}
+		
+		function plucker(FIELD){
+			return function(obj){
+				return (obj&&obj[FIELD]);
+			}
+		}
+		
+		var people = [{name: "Fred", age:65},{name: "Lucy", age:36}, {name:"Luciano", age:29}];
+		
+		function best(fun, col){
+			return col.reduce(function(x,y){
+				return fun(x,y) ? x : y;
+			});
+		}
+		
+		function repeat(times, VALUE){
+			return _.map(_.range(times), function(){return VALUE;})
+		}	
+		
+		function repeatedly(times, fun){
+			return _.map(_.range(times), fun);
+		}
+		
+		
+		function iterateUntil(fun, check, init){
+			var ret = [];
+			var result = fun(init);
+			
+			while(check(result)){
+				ret.push(result);
+				result = fun(result);
+			}
+			
+			return ret;
+		};		
+		
+		function always(VALUE){
+			return function(){
+				return VALUE;
+			};
+		};
+		
+		
+		var f = always(function(){});
+		var g = always(function(){});		
+		
+		function invoker(NAME, METHOD){
+			return function(target){
+				
+				var targetMethod = target[NAME];
+				var args = _.rest(arguments);
+				
+				return doWhen((METHOD === targetMethod), function(){
+					return targetMethod.apply(target,args);
+				});
+			};
+		};
+		
+		var rev = invoker('reverse', Array.prototype.reverse);
+	
+		
+		
+		function uniqueString1(len){
+			return Math.random().toString(36).substr(2,len);
+		};
+		
+		
+		function uniqueString2(prefix){
+			return [prefix, new Date().getTime()].join('');
+		}
+		
+		
+		function log(e){
+			return console.log(e);
+		}
+		
+		function makeUniqueStringFunction(start){
+			var COUNTER = start;
+			
+			return function(prefix){
+				return [prefix, COUNTER++].join('');
+			}
+		};
+		
+		var uniqueString = makeUniqueStringFunction(0);
+		
+		// High order function behavior with object
+		var generator = {
+			counter : 0,
+			uniqueString: function(prefix){
+					return [prefix, this.counter++].join('');
+			}
+		};
+	
+		
+		// Bug
+		generator.counter = "gotcha";
+		
+		
+		var omgenerator = (function(init){
+			var COUNTER = init;
+			
+			return {
+				uniqueString: function(prefix){
+					return [prefix, COUNTER++].join('');
+				}
+			};
+		})(0);
+		
+		omgenerator.COUNTER = "gotcha";
+		
+		
+		
+		var nums = [1,2,3,null,5];
+		
+		
+		function existy(x){return x != null };
+		
+		
+		function fnull(fun){
+			var defaults = _.rest(arguments);
+			
+			return function(){
+				var args = _.map(arguments, function(e,i){
+					return existy(e) ? e : defaults[i];
+				});
+				
+				return fun.apply(null, args);
+			};
+		};
+		
+		var safeMult = fnull(function(total, n){return total*n}, 1, 1);
+		
+		function defaults(d){
+			return function(o,k){
+				var val = fnull(_.identity, d[k]);
+				return o && val(o[k]);
+			};
+		}
+		
+		function doSomething(config){
+			var lookup = defaults({critical: 108});
+			
+			return lookup(config, 'critical');
+		}
+		
+		
+		
+		
+		function checker(){
+			var validators = _.toArray(arguments);
+			return function(obj){
+				return _.reduce(validators, function(errs,check){
+					if(check(obj))
+						return errs
+					else
+						return _.chain(errs).push(check.message).value();
+				}, []);
+			};
+		}
+		
+		
+		var alwaysPasses = checker(always(true), always(true));
+		
+		var fails = always(false);
+		fails.message = "a failure in life";
+		var alwaysFails = checker(fails);
+		
+		function validator(message, fun){
+			var f = function(){
+				return fun.apply(fun, arguments);
+			};
+			
+			f['message'] = message;
+			return f;
+		}
+		
+		var gonnaFail = checker(validator(("ZOMG!"), always(false)));
+		
+		
+		function aMap(obj) {
+			return _.isObject(obj);
+		}
+		
+		var checkCommand = checker(validator("must be a map", aMap));
+		
+		function hasKeys(){
+			var KEYS = _.toArray(arguments);
+			
+			var fun = function(obj){
+				return _.every(KEYS, function(k){
+					return _.has(obj, k);
+				});
+			};
+			
+			fun.message = (["Must have values for keys:"], KEYS).join(" ");
+			return fun;
+		}
+		
+		
+		var checkCommand =  checker(validator("must be a map", aMap), hasKeys('msg', 'type'));
+		
+		function dispatch(){
+			var funs = _.toArray(arguments);
+			var size = funs.length;
+			
+			return function(target){
+				var ret = undefined;
+				var args = _.rest(arguments);
+				
+				for(var funIndex = 0; funIndex < size; funIndex++){
+					var fun = funs[funIndex];
+					ret = fun.apply(fun, construct(target, args));
+					
+					if(existy(ret))return ret;
+				}
+				return ret;
+			};
+		}
+		
+		var str = dispatch(invoker('toString', Array.prototype.toString),
+		invoker('toString', String.prototype.toString));
+		
+		log(str("a"));
+		log(str(_.range(10)));
+		
+		function stringReverse(s){
+			if(!_.isString(s)) return undefined;
+			return s.split('').reverse().join("");
+		}
+		
+		log(stringReverse("abc"));
+		log(stringReverse(1));
+		
+		function performCommandHardcoded(command){
+			var result;
+			
+			switch(command.type){
+				case 'notify':
+					result = log('message: ' + command.message);
+					break;
+				case 'join':
+					result = log('target: ' + command.target);
+					break;
+				default:
+					log(command.type);
+			}
+			return result;
+		}
+		
+		performCommandHardcoded({type:'notify', message: 'hi!'});
+		performCommandHardcoded({type:'join', target: 'waiting-room!'});
+		performCommandHardcoded({type:'wat'});
+		
+		function isa(type, action){
+			return function(obj){
+				if(type === obj.type)
+					return action(obj);
+			}
+		}
+		
+		var performCommand = dispatch(isa('notify', function(obj){return log(obj.message)}),
+		isa('join', function(obj){return log(obj.target)}),
+		function(obj){log(obj.type)});
+		
+		performCommand({type:'notify', message: 'hi!'});
+		performCommand({type:'join', target: 'waiting-room!'});
+		performCommand({type:'wat'});
+		
+		function leftCurryDiv(n){
+			return function(d){
+				return n/d;
+			}
+		}
+		
+		var divide10By = leftCurryDiv(10);
+		log(divide10By(2));
+		
+		function rightCurryDiv(d){
+			return function(n){
+				return n/d;
+			}
+		}
+		
+		divide10By = rightCurryDiv(10);
+		log(divide10By(2));
+		
+		
+		function curry(fun){
+			return function(arg){
+				return fun(arg);
+			}
+		}
+		
+		log(['11','11','11','11'].map(parseInt));
+		log(['11','11','11','11'].map(curry(parseInt)));
+		
+		
+		function curry2(fun){
+			return function(secondArg){
+				return function(firstArg){
+					return fun(firstArg, secondArg);
+				};
+			};
+		}
+		
+		function div(n,d){return n/d}
+		
+		var div10 = curry2(div)(10);
+		
+		log(div10(50));
+		
+		var plays = [{artist: "Burial", track: "Archangel"},
+		{artist: "Ben Frost", track: "Stomp"},
+		{artist: "Ben Frost", track: "Stomp"},
+		{artist: "Burial", track: "Archangel"},
+		{artist: "Emeralds", track: "Snores"},
+		{artist: "Burial", track: "Archangel"}];
+		
+		
+		log(_.countBy(plays, function(song){
+			return [song.artist, song.track].join(" - ");
+		}));
+		
+		function songToString(song){
+			return [song.artist, song.track].join(" - ");
+		}
+		
+		var songCount = curry2(_.countBy)(songToString);
+		
+		log(songCount(plays));
+		
+		
+		function curry3(fun){
+			return function(last){
+				return function(middle){
+					return function(first){
+						return fun(first, middle, last);
+					}
+				}
+			}
+		}
+		
+		var songsPlayed = curry3(_.uniq)(false)(songToString);
+		log(songsPlayed(plays));
+		
+		
+		
+		function toHex(n){
+			var hex = n.toString(16);
+			return (hex.length < 2) ? [0,hex].join(''):hex;
+		}
+		
+		function rgbToHexString(r,g,b){
+			return ["#", toHex(r),toHex(g),toHex(b)].join('');
+		}
+		
+		log(rgbToHexString(255,255,255));
+		
+		var blueGreenish = curry3(rgbToHexString)(255)(200);
+		log(blueGreenish(0));
+		
+		
+		var greaterThan = curry2(function (lhs, rhs){return lhs > rhs});
+		var lessThan = curry2(function(lhs, rhs){return lhs < rhs});
+		
+		var withinRange = checker(validator("arg must be greater than 10", greaterThan(10)),
+		validator("arg must be less than 20", lessThan(20)));
+		
+		log(withinRange(15));
+		log(withinRange(1));
+		log(withinRange(100));
+		
+		
+		function divPart(n){
+			return function(d){
+				return n/d;
+			};
+		}
+		
+		var over10Part = divPart(10);
+		log(over10Part(2));
+		
+		function partial1(fun, arg1){
+			return function(){
+				var args = construct(arg1, arguments);
+				return fun.apply(fun,args);
+			}
+		}
+		
+		var over10Part1 = partial1(div, 10);
+		log(over10Part1(5));
+		
+		function partial2(fun, arg1, arg2){
+			return function(){
+				var args = cat([arg1, arg2], arguments);
+				return fun.apply(fun, args);
+			};
+		}
+		
+		var div10By2 = partial2(div, 10, 2);
+		
+		log(div10By2());
+		
+		
+		var zero = validator("cannot be zero", function(n){return 0 === n});
+		var number = validator("arg must be a number", _.isNumber);
+		
+		function sqr(n){
+			if(!number(n)) log("error: " + number.message);
+			if(zero(n)) log("error: " + zero.message);
+			
+			return n*n;
+		}
+		
+		log(sqr(10));
+		log(sqr(0));
+		log(sqr(''));
+		
+		function mapcat(fun, coll){
+			return cat.apply(null, _.map(coll, fun));
+		}
+		
+		function complement(PRED){
+			return function(){
+				return !PRED.apply(null, _.toArray(arguments));
+			}
+		}
+		
+		function condition1(){
+			var validators = _.toArray(arguments);
+			
+			return function(fun, arg){
+				var errors = mapcat(
+					function(isValid){
+						return isValid(arg) ? [] : [isValid.message];
+					}, validators);
+					
+					if(!_.isEmpty(errors))
+						log(errors.join(", "));
+						
+					return fun(arg);
+			};
+		}
+		
+		var sqrPre = condition1(validator("arg must not be zero", complement(zero)), validator("arg must be a number", _.isNumber));
+		log(sqrPre(_.identity, 10));
+		log(sqrPre(_.identity, ''));
+		log(sqrPre(_.identity, 0));
+		
+    </script>
+</body>
+</html>
