@@ -4,7 +4,7 @@ package com.ssavr.tutorials.sportify;
  * Hello world!
  *
  */
-public class App 
+public class SpotifyClient 
 {
     public static void main( String[] args )
     {
