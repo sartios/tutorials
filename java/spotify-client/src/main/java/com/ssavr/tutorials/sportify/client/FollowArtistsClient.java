@@ -20,7 +20,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 
-public class FollowArtistsUsersClient {
+public class FollowArtistsClient {
 
 	public static boolean followArtists(List<String> ids, TokenDto tokenDto) {
 		URI uri;
@@ -88,7 +88,7 @@ public class FollowArtistsUsersClient {
 			builder.append("\"");
 			builder.append(id);
 			builder.append("\"");
-
+			builder.append(",");
 		}
 		builder.append("]");
 		builder.append("}");
@@ -100,5 +100,5 @@ public class FollowArtistsUsersClient {
 	}
 
 	private final static Logger _log = Logger
-			.getLogger(FollowArtistsUsersClient.class);
+			.getLogger(FollowArtistsClient.class);
 }

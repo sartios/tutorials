@@ -33,10 +33,7 @@ public class TokenClient {
 
 	public static TokenDto getScopedAccessToken() {
 		TokenDto tokenDto = new TokenDto(
-				"BQDPp6dPOlHY6NPKoIW3EH1cV9eorwpE8pvNVn8K6e"
-						+ "wl26z26kwbSMLGaEI19vNpiMv77bJxh6hZ5Eli6Oww0duwbvpZT1oSSNdwQ2"
-						+ "TfuSBdBHWwc81fRCh69FMbXpTfvk-UCqYK_5SQUO89A4t_D8N4F"
-						+ "__7fsDwHbA", "Bearer");
+				"BQCmGP88eKkpvG73pyfbMjqdGFnNXJB-biXPdf6OcQsPKDRFBe-Xm60hVabpQBFlHVtVoiTti1ExmG9_1DUvP0e1Ft_qUPZRu7dtqP2PQNTkJHjkf-IT8dMxGOb2xM9GcVskbddMOCqnUnceLng9FkvFucLFbhbF4Fg", "Bearer");
 		return tokenDto;
 	}
 
@@ -97,7 +94,7 @@ public class TokenClient {
 	}
 
 	private static TokenDto executeRequest(HttpUriRequest httpPost,
-			ResponseHandler responseHandler) {
+			ResponseHandler<TokenDto> responseHandler) {
 		TokenDto tokenDto = null;
 		HttpClient client = HttpClientBuilder.create().build();
 		try {

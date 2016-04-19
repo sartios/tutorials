@@ -1,10 +1,11 @@
 package com.ssavr.tutorials.sportify;
 
 import com.ssavr.tutorials.sportify.client.AlbumClient;
-import com.ssavr.tutorials.sportify.client.FollowArtistsUsersClient;
+import com.ssavr.tutorials.sportify.client.FollowArtistsClient;
 import com.ssavr.tutorials.sportify.client.NewReleasesClient;
 import com.ssavr.tutorials.sportify.client.SearchClient;
 import com.ssavr.tutorials.sportify.client.TokenClient;
+import com.ssavr.tutorials.sportify.client.UnfollowArtistsClient;
 import com.ssavr.tutorials.sportify.dto.AlbumDto;
 import com.ssavr.tutorials.sportify.dto.NewReleasesDto;
 import com.ssavr.tutorials.sportify.dto.SearchResultDto;
@@ -24,16 +25,31 @@ import org.apache.log4j.Logger;
 public class SpotifyClient {
 
 	public static void main(String[] args) throws UnsupportedEncodingException {
-		
-		followArtist("Wiz Khalifa");
+
+		//followArtist("Wiz Khalifa");
+		unfollowArtist("Wiz Khalifa");
+
+	}
+
+	private static void unfollowArtist(String artistName) {
+		TokenDto tokenDto = TokenClient.getScopedAccessToken();
+		SearchResultDto searchResultDto = SearchClient
+				.searchForArtists(artistName);
+		List<String> ids = new ArrayList<String>();
+		if (_log.isDebugEnabled()) {
+			_log.debug("ID: " + searchResultDto.getId());
+		}
+		ids.add(searchResultDto.getId());
+		UnfollowArtistsClient.unfollowArtist(ids, tokenDto);
 	}
 
 	private static void followArtist(String artistName) {
-		TokenDto tokenDto = TokenClient.getScopedAccessToken();	
-		SearchResultDto searchResultDto = SearchClient.searchForArtists(artistName);
+		TokenDto tokenDto = TokenClient.getScopedAccessToken();
+		SearchResultDto searchResultDto = SearchClient
+				.searchForArtists(artistName);
 		List<String> ids = new ArrayList<String>();
 		ids.add(searchResultDto.getId());
-		FollowArtistsUsersClient.followArtists(ids, tokenDto);
+		FollowArtistsClient.followArtists(ids, tokenDto);
 	}
 
 	private static void printAlbumInfo(AlbumDto album) {
