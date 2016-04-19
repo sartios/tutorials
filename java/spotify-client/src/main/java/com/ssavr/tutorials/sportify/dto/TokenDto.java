@@ -14,6 +14,11 @@ public class TokenDto {
 		setTokenType(tokenJson);
 	}
 
+	public TokenDto(String accessToken, String tokenType) {
+		this.accessToken = accessToken;
+		this.tokenType = tokenType;
+	}
+
 	private void setTokenType(JSONObject tokenJson) {
 		accessToken = JSONUtil.getString(tokenJson, "access_token");
 	}

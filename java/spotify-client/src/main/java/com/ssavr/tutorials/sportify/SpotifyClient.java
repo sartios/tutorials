@@ -1,6 +1,7 @@
 package com.ssavr.tutorials.sportify;
 
 import com.ssavr.tutorials.sportify.client.AlbumClient;
+import com.ssavr.tutorials.sportify.client.FollowArtistsUsersClient;
 import com.ssavr.tutorials.sportify.client.NewReleasesClient;
 import com.ssavr.tutorials.sportify.client.SearchClient;
 import com.ssavr.tutorials.sportify.client.TokenClient;
@@ -10,22 +11,29 @@ import com.ssavr.tutorials.sportify.dto.SearchResultDto;
 import com.ssavr.tutorials.sportify.dto.TokenDto;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 
 /**
  * 
- * Hello world!
+ * Spotify Client
  *
  */
 public class SpotifyClient {
 
 	public static void main(String[] args) throws UnsupportedEncodingException {
-		SearchResultDto searchResultDto = SearchClient.searchForArtists("Wiz Khalifa");
-		if (_log.isDebugEnabled()) {
-			_log.debug("ID: " + searchResultDto.getId());
-		}
+		
+		followArtist("Wiz Khalifa");
+	}
+
+	private static void followArtist(String artistName) {
+		TokenDto tokenDto = TokenClient.getScopedAccessToken();	
+		SearchResultDto searchResultDto = SearchClient.searchForArtists(artistName);
+		List<String> ids = new ArrayList<String>();
+		ids.add(searchResultDto.getId());
+		FollowArtistsUsersClient.followArtists(ids, tokenDto);
 	}
 
 	private static void printAlbumInfo(AlbumDto album) {
@@ -52,5 +60,5 @@ public class SpotifyClient {
 
 	}
 
-	final static Logger _log = Logger.getLogger(SpotifyClient.class);
+	private final static Logger _log = Logger.getLogger(SpotifyClient.class);
 }

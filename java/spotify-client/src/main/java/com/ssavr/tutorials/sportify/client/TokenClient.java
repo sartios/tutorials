@@ -31,12 +31,21 @@ import org.apache.log4j.Logger;
 
 public class TokenClient {
 
+	public static TokenDto getScopedAccessToken() {
+		TokenDto tokenDto = new TokenDto(
+				"BQDPp6dPOlHY6NPKoIW3EH1cV9eorwpE8pvNVn8K6e"
+						+ "wl26z26kwbSMLGaEI19vNpiMv77bJxh6hZ5Eli6Oww0duwbvpZT1oSSNdwQ2"
+						+ "TfuSBdBHWwc81fRCh69FMbXpTfvk-UCqYK_5SQUO89A4t_D8N4F"
+						+ "__7fsDwHbA", "Bearer");
+		return tokenDto;
+	}
+
 	public static TokenDto getAccessToken() {
 		URI uri;
 		try {
 			uri = new URIBuilder().setScheme("https")
 					.setHost("accounts.spotify.com").setPath("/api/token")
-					.build();
+					.addParameter("scope", "user-follow-modify").build();
 		} catch (URISyntaxException e) {
 			_log.error(e.getMessage());
 			return null;
