@@ -26,10 +26,8 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.apache.log4j.Logger;
 
 public class TokenClient {
 
@@ -39,8 +37,8 @@ public class TokenClient {
 			uri = new URIBuilder().setScheme("https")
 					.setHost("accounts.spotify.com").setPath("/api/token")
 					.build();
-		} catch (URISyntaxException e1) {
-			System.err.println(e1.getMessage());
+		} catch (URISyntaxException e) {
+			_log.error(e.getMessage());
 			return null;
 		}
 
@@ -60,8 +58,8 @@ public class TokenClient {
 
 		try {
 			httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-		} catch (UnsupportedEncodingException e2) {
-			System.err.println(e2.getMessage());
+		} catch (UnsupportedEncodingException e) {
+			_log.error(e.getMessage());
 		}
 
 		log(httpPost);
@@ -80,8 +78,7 @@ public class TokenClient {
 					tokenDto = new TokenDto(JSONUtil.getJsonObject(EntityUtils
 							.toString(response.getEntity())));
 				} else {
-					System.out.println("Request failed, status code: "
-							+ statusCode);
+					_log.error("Request failed, status code: " + statusCode);
 				}
 				return tokenDto;
 			}
@@ -97,9 +94,9 @@ public class TokenClient {
 		try {
 			tokenDto = client.execute(httpPost, responseHandler);
 		} catch (ClientProtocolException e) {
-			System.err.println(e.getMessage());
+			_log.error(e.getMessage());
 		} catch (IOException e) {
-			System.err.println(e.getMessage());
+			_log.error(e.getMessage());
 		}
 		return tokenDto;
 	}
@@ -112,11 +109,15 @@ public class TokenClient {
 			System.out.println(header.getName() + " => " + header.getValue());
 		}
 		try {
-			System.out.println(EntityUtils.toString(httpPost.getEntity()));
-		} catch (ParseException e1) {
-			System.err.println(e1.getMessage());
-		} catch (IOException e1) {
-			System.err.println(e1.getMessage());
+			if (_log.isDebugEnabled()) {
+				_log.debug(EntityUtils.toString(httpPost.getEntity()));
+			}
+		} catch (ParseException e) {
+			_log.error(e.getMessage());
+		} catch (IOException e) {
+			_log.error(e.getMessage());
 		}
 	}
+
+	final static Logger _log = Logger.getLogger(TokenClient.class);
 }

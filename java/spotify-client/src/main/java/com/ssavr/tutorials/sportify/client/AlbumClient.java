@@ -16,6 +16,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -29,12 +30,10 @@ public class AlbumClient {
 					.setHost("api.spotify.com")
 					.setPath("/v1/albums/" + albumId).build();
 		} catch (URISyntaxException e1) {
-			System.err.println(e1.getMessage());
+			_log.error(e1.getMessage());
 			return null;
 		}
 		HttpGet httpGet = new HttpGet(uri);
-
-		System.out.println("Executing request: " + httpGet.getRequestLine());
 
 		ResponseHandler<AlbumDto> responseHandler = new ResponseHandler<AlbumDto>() {
 
@@ -49,9 +48,9 @@ public class AlbumClient {
 							album = new AlbumDto(new JSONObject(
 									EntityUtils.toString(entity)));
 						} catch (ParseException e) {
-							System.err.println(e.getMessage());
+							_log.error(e.getMessage());
 						} catch (JSONException e) {
-							System.err.println(e.getMessage());
+							_log.error(e.getMessage());
 						}
 					}
 				}
@@ -63,10 +62,12 @@ public class AlbumClient {
 		try {
 			album = httpClient.execute(httpGet, responseHandler);
 		} catch (ClientProtocolException e) {
-			System.err.println(e.getMessage());
+			_log.error(e.getMessage());
 		} catch (IOException e) {
-			System.err.println(e.getMessage());
+			_log.error(e.getMessage());
 		}
 		return album;
 	}
+
+	final static Logger _log = Logger.getLogger(AlbumClient.class);
 }
