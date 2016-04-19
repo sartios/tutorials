@@ -1,10 +1,10 @@
 package com.ssavr.tutorials.sportify.dto;
 
+import com.ssavr.tutorials.sportify.utils.JSONUtil;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 public class AlbumDto {
@@ -41,15 +41,15 @@ public class AlbumDto {
 	}
 
 	private void setTracks(JSONObject albumJson) {
-		tracks.addAll(getList("tracks", "name", albumJson));
+		tracks.addAll(JSONUtil.getList("tracks", "name", albumJson));
 	}
 
 	private void setReleaseDate(JSONObject albumJson) {
-		this.releaseDate = getString(albumJson, "release_date");
+		this.releaseDate = JSONUtil.getString(albumJson, "release_date");
 	}
 
 	private void setName(JSONObject albumJson) {
-		this.name = getString(albumJson, "name");
+		this.name = JSONUtil.getString(albumJson, "name");
 	}
 
 	private void setGenres(JSONObject albumJson) {
@@ -57,34 +57,7 @@ public class AlbumDto {
 	}
 
 	private void setArtists(JSONObject albumJson) {
-		artists.addAll(getList("artists", "name", albumJson));
-	}
-
-	private List<String> getList(String arrParam, String objParam,
-			JSONObject albumJson) {
-		List<String> tmpList = new ArrayList<String>();
-		JSONArray jsonArray;
-		try {
-			jsonArray = albumJson.getJSONArray(arrParam);
-			if (jsonArray != null) {
-				for (int i = 0; i < jsonArray.length(); i++) {
-					JSONObject jsonObject = jsonArray.getJSONObject(i);
-					tmpList.add(getString(jsonObject, objParam));
-				}
-			}
-		} catch (JSONException e) {
-		}
-
-		return tmpList;
-	}
-
-	private String getString(JSONObject albumJson, String key) {
-		String value = "";
-		try {
-			value = albumJson.getString(key);
-		} catch (JSONException e) {
-		}
-		return value;
+		artists.addAll(JSONUtil.getList("artists", "name", albumJson));
 	}
 
 	private List<String> artists = new ArrayList<String>();
